@@ -6,7 +6,7 @@ on:
 jobs:
   detect:
     name: Detect changes
-    runs-on: [self-hosted, default]
+    runs-on: ubuntu-latest
     outputs:
       relevant: ${{ steps.filter.outputs.infra }}
     steps:
@@ -28,7 +28,7 @@ jobs:
     name: Quality Checks
     needs: detect
     if: needs.detect.outputs.relevant == 'true'
-    runs-on: [self-hosted, large]
+    runs-on: ubuntu-latest
     timeout-minutes: 15
 
     steps:
@@ -54,7 +54,7 @@ jobs:
       # L1 の test は 2 スタックを `Template.fromStack` で env-agnostic に synth するため、
       # synth の妥当性検証もここで担保される (AWS 認証・docker・AZ lookup に非依存で決定的)。
       # CLI の `cdk synth` は bin/app.ts の env prop 経由で AZ context lookup を起こしうる
-      # (self-hosted runner の ambient 認証次第で flake / cdk.context.json 書込み) ため CI では使わない。
+      # (runner の ambient 認証次第で flake / cdk.context.json 書込み) ため CI では使わない。
       - name: Test (CDK snapshot + version currency)
         run: npm run test -w @app/infra
 

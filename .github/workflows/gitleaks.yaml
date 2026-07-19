@@ -15,7 +15,9 @@ env:
 jobs:
   scan:
     name: gitleaks
-    runs-on: [self-hosted, arm-default]
+    # betterleaks の検証済み ARM64 release asset をそのまま使用できる、
+    # GitHub-hosted の標準 ARM64 Linux runner を明示する。
+    runs-on: ubuntu-24.04-arm
     steps:
       - uses: actions/checkout@v7.0.0
         with:
