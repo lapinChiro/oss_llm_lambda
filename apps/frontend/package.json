@@ -49,7 +49,7 @@
     "test": "vitest run --project unit",
     "test-storybook": "vitest run --project storybook",
     "test:coverage": "vitest run --project unit --coverage",
-    "test:e2e": "npm run build -w @app/shared -w @app/utils && docker compose -f ../../docker/compose.yaml up -d postgres && env DB_HOST=127.0.0.1 DB_PORT=5435 DB_USER=postgres DB_PASSWORD=password DB_NAME=app_dev DATABASE_URL=postgresql://postgres:password@127.0.0.1:5435/app_dev npm run migrate -w backend && playwright test",
+    "test:e2e": "npm run build -w @app/shared -w @app/utils && docker compose -f ../../docker/compose.yaml up -d --wait postgres && env DB_HOST=127.0.0.1 DB_PORT=5435 DB_USER=postgres DB_PASSWORD=password DB_NAME=app_dev DATABASE_URL=postgresql://postgres:password@127.0.0.1:5435/app_dev npm run migrate -w backend && playwright test",
     "test:mutation": "stryker run",
     "type-check": "vue-tsc --build"
   },

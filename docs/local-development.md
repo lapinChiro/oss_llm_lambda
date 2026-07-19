@@ -16,7 +16,7 @@ Compose は PostgreSQL health → migration + Backend health → Frontend の順
 IDE のデバッガや高速 HMR が必要なら PostgreSQL だけを Docker で起動し、host 用 env を使います。
 
 ```bash
-docker compose -f docker/compose.yaml up -d postgres
+docker compose -f docker/compose.yaml up -d --wait postgres
 cp apps/backend/.env.local.example apps/backend/.env
 npm run dev:local
 ```

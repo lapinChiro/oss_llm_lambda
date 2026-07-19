@@ -47,8 +47,26 @@ jobs:
 
       # Storybook browser tests / E2E は Playwright chromium を使う (vite.config.ts の storybook project, playwright.config.ts)。
       # ブラウザバイナリと OS 依存を明示 install しないと chrome-headless-shell が無く fail する。
+      # ブラウザバイナリ (~/.cache/ms-playwright) を package-lock.json ハッシュでキャッシュする。
+      # lock 変更 (Playwright 版上げ含む) でキーが変わり、キャッシュ更新の必要性を機械的に検知できる。
+      - name: Cache Playwright browsers
+        id: playwright-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+
+      # OS 依存 (apt) はシステムに入りキャッシュ対象外のため常に install する。
+      # キャッシュ hit 時はバイナリ DL を省き install-deps のみ、miss 時は --with-deps で両方入れる。
       - name: Install Playwright browsers
-        run: npx playwright install --with-deps chromium
+        env:
+          CACHE_HIT: ${{ steps.playwright-cache.outputs.cache-hit }}
+        run: |
+          if [ "$CACHE_HIT" = "true" ]; then
+            npx playwright install-deps chromium
+          else
+            npx playwright install --with-deps chromium
+          fi
 
       - name: Build shared packages
         run: npm run build -w @app/shared -w @app/utils
@@ -91,6 +109,27 @@ jobs:
 
       - name: Mutation tests
         run: npm run test:mutation -w frontend
+
+      # test:e2e が起動する postgres image を事前にキャッシュから load して pull を省く。
+      # image タグは compose.yaml が単一真実源。キャッシュキーも compose.yaml ハッシュに連動し、
+      # タグ変更でキーが変わるため、キャッシュ更新の必要性を機械的に検知できる。
+      - name: Cache postgres image
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/docker-images
+          key: docker-postgres-${{ hashFiles('docker/compose.yaml') }}
+
+      - name: Load or pull postgres image
+        run: |
+          IMG=$(docker compose -f docker/compose.yaml config --images postgres)
+          TAR=~/.cache/docker-images/postgres.tar
+          if [ -f "$TAR" ]; then
+            docker load -i "$TAR"
+          else
+            docker pull "$IMG"
+            mkdir -p ~/.cache/docker-images
+            docker save "$IMG" -o "$TAR"
+          fi
 
       - name: End-to-end Todo smoke test
         run: npm run test:e2e -w frontend
