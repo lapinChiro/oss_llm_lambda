@@ -45,6 +45,11 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      # Storybook browser tests / E2E は Playwright chromium を使う (vite.config.ts の storybook project, playwright.config.ts)。
+      # ブラウザバイナリと OS 依存を明示 install しないと chrome-headless-shell が無く fail する。
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
       - name: Build shared packages
         run: npm run build -w @app/shared -w @app/utils
 
