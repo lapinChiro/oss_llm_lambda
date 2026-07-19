@@ -1,0 +1,38 @@
+{
+  "name": "@app/infra",
+  "version": "0.1.0",
+  "dependencies": {
+    "aws-cdk-lib": "2.260.0",
+    "constructs": "10.6.0"
+  },
+  "devDependencies": {
+    "aws-cdk": "2.1128.1",
+    "oxlint-tsgolint": "0.23.0"
+  },
+  "private": true,
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "cdk": "cdk",
+    "deploy": "cdk deploy --all",
+    "deploy:dev": "cdk deploy --all -c env=dev",
+    "deploy:prod": "cdk deploy --all -c env=prod",
+    "destroy": "cdk destroy --all",
+    "diff": "cdk diff",
+    "diff:dev": "cdk diff -c env=dev",
+    "diff:prod": "cdk diff -c env=prod",
+    "lint": "run-s lint:oxlint lint:eslint",
+    "lint:eslint": "eslint .",
+    "lint:eslint:fix": "eslint . --fix",
+    "lint:fix": "run-s lint:oxlint:fix lint:eslint:fix",
+    "lint:oxlint": "git ls-files --cached --others --exclude-standard '*.ts' | xargs oxlint --type-aware --ignore-path .gitignore",
+    "lint:oxlint:fix": "git ls-files --cached --others --exclude-standard '*.ts' | xargs oxlint --type-aware --fix --ignore-path .gitignore",
+    "quality": "npm run type-check && npm run lint && npm run test",
+    "synth": "cdk synth",
+    "synth:dev": "cdk synth -c env=dev",
+    "synth:prod": "cdk synth -c env=prod",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "type-check": "tsc --noEmit"
+  },
+  "type": "module"
+}

@@ -1,0 +1,3 @@
+# stryker (mutation testing) generated artifacts
+.stryker-tmp/
+reports/

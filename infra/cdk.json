@@ -1,0 +1,26 @@
+{
+  "app": "npx tsx bin/app.ts",
+  "watch": {
+    "include": ["**"],
+    "exclude": [
+      "README.md",
+      "cdk*.json",
+      "**/*.d.ts",
+      "**/*.js",
+      "tsconfig.json",
+      "package*.json",
+      "node_modules",
+      "dist"
+    ]
+  },
+  "context": {
+    "@aws-cdk/aws-lambda:recognizeLayerVersion": true,
+    "@aws-cdk/core:defaultCrossStackReferences": "strong",
+    "@aws-cdk/core:checkSecretUsage": true,
+    "@aws-cdk/customresources:installLatestAwsSdkDefault": false,
+    "appName": "webapp",
+    "databaseName": "app",
+    "env": "dev",
+    "region": "us-east-1"
+  }
+}

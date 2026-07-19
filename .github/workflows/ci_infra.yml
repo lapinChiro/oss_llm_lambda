@@ -1,0 +1,62 @@
+name: CI Infra
+
+on:
+  pull_request:
+
+jobs:
+  detect:
+    name: Detect changes
+    runs-on: [self-hosted, default]
+    outputs:
+      relevant: ${{ steps.filter.outputs.infra }}
+    steps:
+      - uses: dorny/paths-filter@v4.0.1
+        id: filter
+        with:
+          filters: |
+            infra:
+              - 'infra/**'
+              # Dependabot の aws-cdk-lib bump は root lockfile を更新するため含める
+              - 'package.json'
+              - 'package-lock.json'
+              - '.node-version'
+              - '.github/workflows/ci_infra.yml'
+              # ドキュメントのみの変更はスキップ
+              - '!**/*.md'
+
+  quality:
+    name: Quality Checks
+    needs: detect
+    if: needs.detect.outputs.relevant == 'true'
+    runs-on: [self-hosted, large]
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7.0.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: '.node-version'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Type check
+        run: npm run type-check -w @app/infra
+
+      - name: Lint
+        run: npm run lint -w @app/infra
+
+      # L1 (CDK template snapshot) + L3 (PostgreSQL enum currency + 見送り台帳) を実行する。
+      # L1 の test は 2 スタックを `Template.fromStack` で env-agnostic に synth するため、
+      # synth の妥当性検証もここで担保される (AWS 認証・docker・AZ lookup に非依存で決定的)。
+      # CLI の `cdk synth` は bin/app.ts の env prop 経由で AZ context lookup を起こしうる
+      # (self-hosted runner の ambient 認証次第で flake / cdk.context.json 書込み) ため CI では使わない。
+      - name: Test (CDK snapshot + version currency)
+        run: npm run test -w @app/infra
+
+      - name: Build
+        run: npm run build -w @app/infra

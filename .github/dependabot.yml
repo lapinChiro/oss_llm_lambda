@@ -1,0 +1,47 @@
+version: 2
+updates:
+  # Root package-lock.json is the source of truth for the npm workspaces
+  # declared in package.json: apps/*, packages/*, and infra.
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Asia/Tokyo"
+    cooldown:
+      default-days: 14
+    open-pull-requests-limit: 100
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:30"
+      timezone: "Asia/Tokyo"
+    cooldown:
+      default-days: 14
+    open-pull-requests-limit: 100
+
+  - package-ecosystem: "docker"
+    directory: "/apps/backend"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "10:00"
+      timezone: "Asia/Tokyo"
+    cooldown:
+      default-days: 14
+    open-pull-requests-limit: 100
+
+  - package-ecosystem: "docker-compose"
+    directory: "/docker"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "10:30"
+      timezone: "Asia/Tokyo"
+    cooldown:
+      default-days: 14
+    open-pull-requests-limit: 100

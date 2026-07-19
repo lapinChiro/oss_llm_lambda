@@ -1,0 +1,88 @@
+name: CI Backend
+
+on:
+  pull_request:
+
+jobs:
+  detect:
+    name: Detect changes
+    runs-on: [self-hosted, default]
+    outputs:
+      relevant: ${{ steps.filter.outputs.backend }}
+    steps:
+      - uses: dorny/paths-filter@v4.0.1
+        id: filter
+        with:
+          filters: |
+            backend:
+              - 'apps/backend/**'
+              - 'packages/**'
+              - 'package.json'
+              - 'package-lock.json'
+              - '.node-version'
+              - '.github/workflows/ci_backend.yml'
+              # ドキュメントのみの変更 (.md / root TODO) は CI をスキップ
+              - '!**/*.md'
+              - '!TODO'
+
+  quality:
+    name: Quality Checks
+    needs: detect
+    if: needs.detect.outputs.relevant == 'true'
+    runs-on: [self-hosted, xlarge]
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7.0.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: '.node-version'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build shared packages
+        run: npm run build -w @app/shared -w @app/utils
+
+      - name: Type check
+        run: npm run type-check -w backend
+
+      - name: Lint
+        run: npm run lint -w backend
+
+      - name: Verify 6 GiB ArrayBuffer allocation
+        shell: bash
+        run: |
+          set -euxo pipefail
+
+          node <<'JS'
+          const size = 6 * 1024 ** 3;
+
+          try {
+            const before = process.memoryUsage();
+            const buffer = new ArrayBuffer(size);
+            const after = process.memoryUsage();
+
+            console.log('6 GiB ArrayBuffer allocation OK', {
+              before,
+              after,
+              byteLength: buffer.byteLength,
+            });
+          } catch (error) {
+            console.error('6 GiB ArrayBuffer allocation failed', error);
+            process.exit(1);
+          }
+          JS
+
+      - name: Test with coverage thresholds
+        run: npm run test:coverage -w backend
+
+      - name: Mutation tests
+        run: npm run test:mutation -w backend
+
+      - name: Build
+        run: npm run build -w backend

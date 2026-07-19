@@ -1,0 +1,5 @@
+{
+  // build (dist emit) は test を除外する。型検査 (type-check) は tsconfig.json で test を含める。
+  "extends": "./tsconfig.json",
+  "include": ["bin/**/*", "lib/**/*"]
+}

@@ -1,0 +1,97 @@
+name: CI Others
+
+on:
+  pull_request:
+
+jobs:
+  detect:
+    name: Detect changes
+    runs-on: [self-hosted, default]
+    outputs:
+      relevant: ${{ steps.filter.outputs.others }}
+    steps:
+      - uses: dorny/paths-filter@v4.0.1
+        id: filter
+        with:
+          filters: |
+            others:
+              - '**'
+              - '!**/*.md'
+              - '!TODO'
+              # infra の品質チェック (type-check / cdk synth / test) は ci_infra.yml が担う。
+              # ここでは infra を品質対象にせず除外する。
+              - '!infra/**'
+              # ただし syncpack はモノレポ全体の package.json を横断検査するため、
+              # infra/package.json だけは検知対象に戻す (依存バージョン整合のみ)。
+              - 'infra/package.json'
+
+  quality:
+    name: Quality Checks
+    needs: detect
+    if: needs.detect.outputs.relevant == 'true'
+    runs-on: [self-hosted, large]
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7.0.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: '.node-version'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Syncpack check (version + format)
+        run: npm run sync:deps:check
+
+      - name: Build shared packages
+        run: npm run build -w @app/shared -w @app/utils
+
+      - name: Type check
+        run: >
+          npm run type-check
+          -w @app/shared
+          -w @app/utils
+
+      - name: Lint
+        run: >
+          npm run lint
+          -w @app/shared
+          -w @app/utils
+
+      - name: Verify 6 GiB ArrayBuffer allocation
+        shell: bash
+        run: |
+          set -euxo pipefail
+
+          node <<'JS'
+          const size = 6 * 1024 ** 3;
+
+          try {
+            const before = process.memoryUsage();
+            const buffer = new ArrayBuffer(size);
+            const after = process.memoryUsage();
+
+            console.log('6 GiB ArrayBuffer allocation OK', {
+              before,
+              after,
+              byteLength: buffer.byteLength,
+            });
+          } catch (error) {
+            console.error('6 GiB ArrayBuffer allocation failed', error);
+            process.exit(1);
+          }
+          JS
+
+      - name: Test with coverage thresholds
+        run: >
+          npm run test:coverage
+          -w @app/shared
+          -w @app/utils
+
+      - name: Build all workspaces
+        run: npm run build

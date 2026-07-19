@@ -1,0 +1,37 @@
+# Secret scanning。betterleaks（gitleaks 原作者らが保守する OSS の後継。Org でもライセンス不要）の
+# 公式 CLI をリリースバイナリから直接取得して実行する。
+# ワークフロー名・ジョブ名は required status check の gating 継続性のため "gitleaks" のまま維持する
+# （実装は betterleaks・パスも gitleaks.yaml 維持）。
+name: "gitleaks"
+
+on: [push, workflow_dispatch]
+
+env:
+  # betterleaks CLI のバージョンは明示ピンする（latest 追従にしない・再現性 + サプライチェーン安定性）。
+  BETTERLEAKS_VERSION: "1.6.1"
+  # linux_arm64 リリースバイナリの sha256（リリースの checksums.txt より）。VERSION 更新時に必ず追従する。
+  BETTERLEAKS_SHA256: "bab9688ba968264ace67b608fc7a7d8f5e61218cde70029d32cbc894e3808fdf"
+
+jobs:
+  scan:
+    name: gitleaks
+    runs-on: [self-hosted, arm-default]
+    steps:
+      - uses: actions/checkout@v7.0.0
+        with:
+          fetch-depth: 0
+      - name: Install betterleaks CLI
+        run: |
+          set -euo pipefail
+          asset="betterleaks_${BETTERLEAKS_VERSION}_linux_arm64.tar.gz"
+          url="https://github.com/betterleaks/betterleaks/releases/download/v${BETTERLEAKS_VERSION}/${asset}"
+          curl -sSfL -o "${RUNNER_TEMP}/${asset}" "${url}"
+          echo "${BETTERLEAKS_SHA256}  ${RUNNER_TEMP}/${asset}" | sha256sum -c -
+          tar -xzf "${RUNNER_TEMP}/${asset}" -C "${RUNNER_TEMP}" betterleaks
+          echo "${RUNNER_TEMP}" >> "$GITHUB_PATH"
+      - name: Scan repository
+        run: |
+          set -euo pipefail
+          # 全 git 履歴を対象に scan。--config で allowlist（.gitleaks.toml）を明示適用し、
+          # findings 検出時は --exit-code 1 で非ゼロ終了させ CI ゲートとして機能させる。
+          betterleaks git . --config .gitleaks.toml --exit-code 1 --redact --no-banner
