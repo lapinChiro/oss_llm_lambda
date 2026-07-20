@@ -47,7 +47,7 @@ export class CrudQueries<TDatabase, TTable extends TableName<TDatabase>> {
   async findMany(options: {
     limit?: number
     offset?: number
-    orderBy?: Array<{ column: keyof Row<TDatabase, TTable> & string; order: 'asc' | 'desc' }>
+    orderBy?: ReadonlyArray<{ column: string; order: 'asc' | 'desc' }>
   } = {}): Promise<Page<Row<TDatabase, TTable>>> {
     const offset = options.offset ?? 0
     const { executor, table } = this.runtime()

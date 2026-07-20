@@ -42,4 +42,4 @@ DB の date/datetime 列、時刻の書込み・読出し・変換、API の日�
 - migration test で column type/default と round-trip を実証する。
 - service/API test で timestamp wire value が schema と一致することを確認する。
 - `apps/backend/src/db/connection.ts` の DATE parser と codegen option が一致することを確認する。
-- Lambda 数を自然文へ固定せず、`infra/lib/stacks/` の全 NodejsFunction を調べて `TZ: 'UTC'` の有無を確認する。
+- Lambda 数を自然文へ固定せず、`infra/lib/stacks/` の全 Lambda 関数構築（現状 `DockerImageFunction`）を調べて `TZ: 'UTC'` の有無を確認する。

@@ -10,12 +10,13 @@ const row: TodoRow = { uuid: '00000000-0000-4000-8000-000000000001', title: 'Tod
 
 function setup(overrides: Partial<TodoRepository> = {}): {
   service: TodoService
-  calls: { create: ReturnType<typeof vi.fn>; update: ReturnType<typeof vi.fn> }
+  calls: { findMany: ReturnType<typeof vi.fn>; create: ReturnType<typeof vi.fn>; update: ReturnType<typeof vi.fn> }
 } {
+  const findMany = vi.fn().mockResolvedValue({ items: [row], total: 1, limit: undefined, offset: 0 })
   const create = vi.fn().mockResolvedValue(row)
   const update = vi.fn().mockResolvedValue({ ...row, completed: true })
   const repository = {
-    findMany: vi.fn().mockResolvedValue({ items: [row], total: 1, limit: undefined, offset: 0 }),
+    findMany,
     findById: vi.fn().mockResolvedValue(row),
     create,
     update,
@@ -23,14 +24,16 @@ function setup(overrides: Partial<TodoRepository> = {}): {
     executeInTransaction: vi.fn(async (callback: (transaction: object) => Promise<unknown>) => callback({})),
     ...overrides,
   } as unknown as TodoRepository
-  return { service: new TodoService(repository), calls: { create, update } }
+  return { service: new TodoService(repository), calls: { findMany, create, update } }
 }
 
 describe('TodoService domain rules', () => {
-  it('maps database rows to the stable wire contract', async () => {
-    const { service } = setup()
+  it('maps database rows to the stable wire contract and propagates the requested sort order', async () => {
+    const { service, calls } = setup()
+    const orderBy = [{ column: 'created_at', order: 'desc' }, { column: 'uuid', order: 'desc' }] as const
     const expected = { id: row.uuid, title: 'Todo', completed: false, createdAt: now.toISOString(), updatedAt: now.toISOString() }
-    expect(await service.findMany()).toEqual({ items: [expected] })
+    expect(await service.findMany({ orderBy })).toEqual({ items: [expected] })
+    expect(calls.findMany).toHaveBeenCalledWith({ orderBy })
     expect(await service.findById(row.uuid)).toEqual(expected)
     expect(await setup({ findById: vi.fn().mockResolvedValue(null) }).service.findById(row.uuid)).toBeNull()
   })

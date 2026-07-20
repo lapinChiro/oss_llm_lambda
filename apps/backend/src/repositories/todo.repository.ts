@@ -1,15 +1,14 @@
 import type { DB } from '../db/generated-types.js'
 import type { NewTodoRow, TodoRow, TodoRowUpdate } from '../db/types.js'
+import type { OrderBy } from '../utils/crud-handlers.js'
 import type { Transaction } from 'kysely'
 
 import { BaseRepository } from './base.repository.js'
 import { CrudQueries } from './crud.repository.js'
 
 export class TodoRepository extends BaseRepository {
-  findMany(): Promise<{ items: TodoRow[]; total: number; limit: number | undefined; offset: number }> {
-    return new CrudQueries(this.database, 'todos').findMany({
-      orderBy: [{ column: 'created_at', order: 'desc' }, { column: 'uuid', order: 'desc' }],
-    })
+  findMany(options: { orderBy: OrderBy }): Promise<{ items: TodoRow[]; total: number; limit: number | undefined; offset: number }> {
+    return new CrudQueries(this.database, 'todos').findMany(options)
   }
 
   findById(id: string): Promise<TodoRow | null> {

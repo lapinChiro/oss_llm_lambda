@@ -17,6 +17,9 @@ export function registerTodoRoutes(app: OpenAPIHono, database: Kysely<DB>): void
     schemas: {
       entity: TodoSchema, create: CreateTodoSchema, update: UpdateTodoSchema, params: TodoParamsSchema,
     },
-    handlers: createCrudHandlers(service, { generateId: false }),
+    handlers: createCrudHandlers(service, {
+      generateId: false,
+      listOrderBy: [{ column: 'created_at', order: 'desc' }, { column: 'uuid', order: 'desc' }],
+    }),
   })
 }

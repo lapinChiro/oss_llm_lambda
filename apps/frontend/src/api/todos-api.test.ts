@@ -10,9 +10,9 @@ const todo: Todo = { id: '1', title: 'Audit template', completed: false, created
 describe('Todos API network boundary', () => {
   it('implements the shared list/create/update/delete wire contract', async () => {
     const request = vi.fn<typeof fetch>()
-      .mockResolvedValueOnce(new Response(JSON.stringify([todo])))
-      .mockResolvedValueOnce(new Response(JSON.stringify(todo), { status: 201 }))
-      .mockResolvedValueOnce(new Response(JSON.stringify({ ...todo, completed: true })))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ success: true, data: [todo] })))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ success: true, data: todo }), { status: 201 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ success: true, data: { ...todo, completed: true } })))
       .mockResolvedValueOnce(new Response(null, { status: 204 }))
     const api = createTodosApi(request)
 

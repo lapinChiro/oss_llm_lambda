@@ -1,0 +1,41 @@
+# TODO
+
+PRD 化前の課題・アイデアの inbox（構造モデルの正は `.claude/rules/backlog-layer-model.md`）。
+各項目は「PRD 化 → `backlog/`」か「`TODO.archive` へ退避（ユーザー判断・再開条件付き）」の 2 出口のいずれかで去る。
+優先度は 3 軸（直接的価値・相乗効果・伝播防止）で評価する（正は `.claude/rules/todo-prioritization.md`）。
+
+以下はテンプレート全体レビュー（実装 + Claude Code 設定）で確定し、その場修正せず追跡に回した項目。
+
+## 優先度: 高
+
+### infra: DB パスワードを Lambda 環境変数の平文注入から Secrets Manager 参照へ
+- 現状: `infra/lib/stacks/app-stack.ts` で `SecretValue.ssmSecure(...).unsafeUnwrap()` を使い `DB_PASSWORD` を Lambda 環境変数に展開（backend / migration の 2 Lambda）。synth 出力・テンプレートには dynamic reference しか残らないが、**稼働中 Lambda の環境変数はコンソール / CloudFormation 上で平文可視**。ローテーションも不可。
+- 影響: テンプレート利用者が全員この構成を継承する（伝播）。本番運用のセキュリティに直結（直接的価値）。
+- 方針候補: (a) Secrets Manager + ローテーション + Lambda 実行時取得、(b) SSM SecureString を実行時に SDK 取得（env 展開しない）。VPC endpoint / NAT が現状ゼロ（下記関連）のため、いずれも到達経路の追加が前提。
+- 関連: 現状 backend は RDS のみ通信で VPC endpoint / NAT がゼロ。Secrets Manager / SSM を実行時に SDK 呼びするなら interface endpoint 追加が必要。
+
+## 優先度: 中
+
+### crud 抽象の未使用拡張点の方針を第2リソース追加前に確定する
+- 対象: `apps/backend/src/utils/crud-handlers.ts` のフック群（`transformForApi` / `beforeCreate` / `validateCreate` / `validateUpdate` / `afterCreate` / `afterUpdate` / `afterDelete`）、`crud-routes.ts` の `extraResponses` / `updateResponse` / `list`、`crud.repository.ts` の `exists` / `limit`/`offset`/`total`（`Page<T>`）。現状 Todo は未使用。
+- 論点: 第2リソース追加予定あり＆汎用性優先の方針では拡張点自体は正当化されうる。ただし「テンプレの使用例として最低1つを実配線して示す（例: 第2リソースで `afterCreate` や `validateUpdate` を使う）」か「実消費が付くまで削る」かを決めておくと、拡張点が dead のまま放置される事態を防げる。
+- 相乗効果: 第2リソース追加作業の直前に決めると、その追加で自然に決着する。
+
+### rule / skill 総量の肥大化を点検する
+- 現状: `.claude/rules/` 25 + `.claude/skills/` 19。`rule-maintenance` skill 自身の目安（総数 20 以上は要注意）を超過。
+- 論点: `**/src/**` を paths に持つ rule が複数あり、src を1ファイル触るだけで常時ロード分と合わせ多数の rule が同時ロードされる（自律開発の1ターンあたりコンテキスト負荷）。合併・絞り込みの余地を `rule-maintenance` の統合チェックで評価する。
+- 伝播防止: 今後も rule/skill は増える傾向のため、基準超過時の点検フローを一度回しておく。
+
+## 優先度: 低
+
+### base.repository の未使用メソッドの扱いを第2リソース設計時に判断する
+- 対象: `apps/backend/src/repositories/base.repository.ts` の `getExecutor` / `withTransaction`。`TodoRepository` は `CrudQueries` を直接生成し transaction を引数で受けるパターンのため未使用。
+- 論点: 第2リソースも同パターンなら削除候補。optional-transaction パターン（transaction 省略時に自動 open）を使う repository を想定するなら保持。第2リソース設計時に方針が決まる。
+
+### app-stack.ts の max-lines-per-function suppress を分割で解消できないか検討する
+- 対象: `infra/lib/stacks/app-stack.ts` の `// eslint-disable-next-line max-lines-per-function`。
+- 論点: CDK constructor 肥大の実務例外だが、「lint suppression で迂回しない」方針（CLAUDE.md）と緊張。construct 群（S3+CloudFront / Lambda+API / Migration）を private メソッドや別 construct に分割する余地。`file-size-limit-decomposition` の本質分割で解消できるか評価する。
+
+### settings.json の model 配線意図を文書化する
+- 現状: `settings.json` / `start_dev` / `coder` は `claude-opus-4-8`、`prd-template` / `review-dev` / `review-prd` / `refactoring-check` / `create-next-prd` は `claude-fable-5`。設計・レビュー・PRD 作成系を fable-5、実装を opus という役割別ルーティングだが意図が未文書化。`fallbackModel` が本体と同一で実質フォールバック無し。
+- 方針候補: ルーティング意図を `settings.json` 近傍か CLAUDE.md の該当節にコメント / 記述。fallbackModel を実効あるモデルにするか、同一で意図的なら明示。

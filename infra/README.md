@@ -24,7 +24,7 @@ All deployment-specific values are CDK context. Defaults synthesize without an A
 The AWS account is read only from `CDK_DEFAULT_ACCOUNT`; no account ID is committed. With no custom-domain inputs, CloudFront's generated domain is the frontend URL. Example custom mode:
 
 ```bash
-npm run synth -w infra -- \
+npm run synth -w @app/infra -- \
   -c env=prod \
   -c appName=example \
   -c databaseName=example \
@@ -43,7 +43,7 @@ Create the only required SSM secret before the first deployment. The optional sh
 APP_NAME=example SSM_PREFIX=/example/prod \
   ./infra/scripts/init-db-password.sh prod '<strong-password>' --profile my-profile
 
-npm run deploy -w infra -- \
+npm run deploy -w @app/infra -- \
   -c env=prod -c appName=example -c databaseName=example -c ssmPrefix=/example/prod
 ```
 
@@ -54,15 +54,15 @@ The bastion scripts derive stack, database, and SSM names from `APP_NAME`, `DATA
 ## Quality and topology checks
 
 ```bash
-npm run type-check -w infra
-npm run lint -w infra
-npm run test -w infra
-npm run build -w infra
-npm run synth -w infra
+npm run type-check -w @app/infra
+npm run lint -w @app/infra
+npm run test -w @app/infra
+npm run build -w @app/infra
+npm run synth -w @app/infra
 ```
 
 Tests cover typed context validation, default and custom-domain modes, neutral names, production safety settings, SPA fallback, API/Lambda/VPC/RDS/migration wiring, deterministic L1 snapshots, and PostgreSQL version currency. Update snapshots only after reviewing the CloudFormation structure:
 
 ```bash
-npm exec -w infra -- vitest run -u
+npm exec -w @app/infra -- vitest run -u
 ```

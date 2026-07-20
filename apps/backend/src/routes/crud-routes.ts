@@ -4,7 +4,7 @@ import type { Handler } from 'hono'
 import { createRoute, z } from '@hono/zod-openapi'
 
 import {
-  DATABASE_ERROR_DESCRIPTION, errorResponse, NOT_FOUND_DESCRIPTION, VALIDATION_ERROR_DESCRIPTION,
+  DATABASE_ERROR_DESCRIPTION, errorResponse, NOT_FOUND_DESCRIPTION, successResponse, VALIDATION_ERROR_DESCRIPTION,
 } from '../schemas/common.js'
 
 export type CrudOperation = 'getAll' | 'getById' | 'create' | 'update' | 'delete'
@@ -57,7 +57,7 @@ export function registerCrudRoutes(app: OpenAPIHono, options: CrudRouteOptions):
     const route = createRoute({
       method: 'get', path: basePath, tags: [tag],
       responses: {
-        200: { description: `List of ${tag}`, content: { 'application/json': { schema: schemas.list ?? z.array(schemas.entity) } } },
+        200: successResponse(schemas.list ?? z.array(schemas.entity), `List of ${tag}`),
         ...errors('getAll'),
       },
     })
@@ -68,7 +68,7 @@ export function registerCrudRoutes(app: OpenAPIHono, options: CrudRouteOptions):
     const route = createRoute({
       method: 'get', path: `${basePath}/{uuid}`, tags: [tag], request: { params },
       responses: {
-        200: { description: `${tag} details`, content: { 'application/json': { schema: schemas.entity } } },
+        200: successResponse(schemas.entity, `${tag} details`),
         ...errors('getById'),
       },
     })
@@ -80,7 +80,7 @@ export function registerCrudRoutes(app: OpenAPIHono, options: CrudRouteOptions):
       method: 'post', path: basePath, tags: [tag],
       request: { body: { content: { 'application/json': { schema: schemas.create } } } },
       responses: {
-        201: { description: `${tag} created`, content: { 'application/json': { schema: schemas.entity } } },
+        201: successResponse(schemas.entity, `${tag} created`),
         ...errors('create'),
       },
     })
@@ -94,7 +94,7 @@ export function registerCrudRoutes(app: OpenAPIHono, options: CrudRouteOptions):
         body: { content: { 'application/json': { schema: schemas.update } } },
       },
       responses: {
-        200: { description: `${tag} updated`, content: { 'application/json': { schema: schemas.updateResponse ?? schemas.entity } } },
+        200: successResponse(schemas.updateResponse ?? schemas.entity, `${tag} updated`),
         ...errors('update'),
       },
     })

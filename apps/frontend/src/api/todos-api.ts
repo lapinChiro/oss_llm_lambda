@@ -1,4 +1,4 @@
-import type { CreateTodoInput, Todo, UpdateTodoInput } from '@app/shared'
+import type { ApiSuccessResponse, CreateTodoInput, Todo, UpdateTodoInput } from '@app/shared'
 
 import { toApiError } from './errors'
 
@@ -15,7 +15,8 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3000
 
 async function parseResponse<T>(response: Response): Promise<T> {
   if (!response.ok) throw await toApiError(response)
-  return response.status === 204 ? undefined as T : await response.json() as T
+  if (response.status === 204) return undefined as T
+  return (await response.json() as ApiSuccessResponse<T>).data
 }
 
 export function createTodosApi(request: typeof fetch = fetch): TodosApi {

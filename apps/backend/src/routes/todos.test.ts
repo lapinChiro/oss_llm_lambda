@@ -1,9 +1,11 @@
-import type { ApiErrorResponse, Todo } from '@app/shared'
+import type { ApiErrorResponse } from '@app/shared'
 
+import { z } from '@hono/zod-openapi'
 import { afterEach, beforeEach } from 'vitest'
 
 import { buildApp } from '../app.js'
 import { TodoRepository } from '../repositories/todo.repository.js'
+import { successResponseSchema } from '../schemas/common.js'
 import { TodoSchema } from '../schemas/todos.js'
 import { ApiTester } from '../testing/api-tester.js'
 import { createMigratedTestDatabase, destroyTestDatabase, type TestDatabase } from '../testing/test-database.js'
@@ -23,16 +25,17 @@ describe('/api/todos', () => {
 
   it('lists, creates, updates/toggles, reads, and deletes Todos', async () => {
     await factory.create({ title: 'Existing', completed: true })
-    expect((await api.get<Todo[]>('/api/todos')).data).toHaveLength(1)
+    const list = await api.get('/api/todos', successResponseSchema(z.array(TodoSchema)))
+    expect(list.data.data).toHaveLength(1)
 
-    const created = await api.post<Todo>('/api/todos', { title: '  Ship template  ' }, TodoSchema)
+    const created = await api.post('/api/todos', { title: '  Ship template  ' }, successResponseSchema(TodoSchema))
     expect(created.status).toBe(201)
-    expect(created.data).toMatchObject({ title: 'Ship template', completed: false })
+    expect(created.data.data).toMatchObject({ title: 'Ship template', completed: false })
 
-    const updated = await api.put<Todo>(`/api/todos/${created.data.id}`, { title: 'Renamed', completed: true }, TodoSchema)
-    expect(updated.data).toMatchObject({ title: 'Renamed', completed: true })
-    expect((await api.get<Todo>(`/api/todos/${created.data.id}`, TodoSchema)).data).toEqual(updated.data)
-    expect((await api.delete(`/api/todos/${created.data.id}`)).status).toBe(204)
+    const updated = await api.put(`/api/todos/${created.data.data.id}`, { title: 'Renamed', completed: true }, successResponseSchema(TodoSchema))
+    expect(updated.data.data).toMatchObject({ title: 'Renamed', completed: true })
+    expect((await api.get(`/api/todos/${created.data.data.id}`, successResponseSchema(TodoSchema))).data.data).toEqual(updated.data.data)
+    expect((await api.delete(`/api/todos/${created.data.data.id}`)).status).toBe(204)
   })
 
   it('returns one stable error contract for validation, not-found, and DB constraints', async () => {

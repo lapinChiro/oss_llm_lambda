@@ -4,8 +4,10 @@ import { randomUUID } from 'node:crypto'
 
 import { NotFoundError } from '../errors/index.js'
 
+export type OrderBy = ReadonlyArray<{ column: string; order: 'asc' | 'desc' }>
+
 export interface CrudRepository<T> {
-  findMany(options: { orderBy: Array<{ column: string; order: 'asc' | 'desc' }> }): Promise<{ items: T[] }>
+  findMany(options: { orderBy: OrderBy }): Promise<{ items: T[] }>
   findById(id: string): Promise<T | null>
   create(data: Record<string, unknown>, transaction: unknown): Promise<T>
   update(id: string, data: Record<string, unknown>, transaction: unknown): Promise<T | undefined>
@@ -15,6 +17,7 @@ export interface CrudRepository<T> {
 
 export interface CrudHandlerOptions<T> {
   generateId?: boolean
+  listOrderBy?: OrderBy
   transformForApi?: (entity: T) => Record<string, unknown>
   beforeCreate?: (data: Record<string, unknown>) => Record<string, unknown> | Promise<Record<string, unknown>>
   validateCreate?: (data: Readonly<Record<string, unknown>>) => Promise<void> | void
@@ -45,16 +48,17 @@ export function createCrudHandlers<T>(
   delete: (context: Context) => Promise<Response>
 } {
   const transform = options.transformForApi ?? ((entity: T) => entity as Record<string, unknown>)
+  const listOrderBy = options.listOrderBy ?? [{ column: 'created_at', order: 'desc' }]
 
   return {
     getAll: async (context) => {
-      const { items } = await repository.findMany({ orderBy: [{ column: 'created_at', order: 'desc' }] })
-      return context.json(items.map(transform), 200)
+      const { items } = await repository.findMany({ orderBy: listOrderBy })
+      return context.json({ success: true, data: items.map(transform) }, 200)
     },
     getById: async (context) => {
       const entity = await repository.findById(getUuid(context))
       if (!entity) throw new NotFoundError('Resource not found')
-      return context.json(transform(entity), 200)
+      return context.json({ success: true, data: transform(entity) }, 200)
     },
     create: async (context) => {
       const validated = getValidatedJson(context)
@@ -66,7 +70,7 @@ export function createCrudHandlers<T>(
         await options.afterCreate?.(created, data, transaction)
         return created
       })
-      return context.json(transform(entity), 201)
+      return context.json({ success: true, data: transform(entity) }, 201)
     },
     update: async (context) => {
       const id = getUuid(context)
@@ -78,7 +82,7 @@ export function createCrudHandlers<T>(
         return updated
       })
       if (!entity) throw new NotFoundError('Resource not found')
-      return context.json(transform(entity), 200)
+      return context.json({ success: true, data: transform(entity) }, 200)
     },
     delete: async (context) => {
       const id = getUuid(context)

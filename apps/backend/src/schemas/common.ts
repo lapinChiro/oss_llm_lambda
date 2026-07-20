@@ -22,3 +22,14 @@ export function errorResponse(description: string): {
 } {
   return { content: { 'application/json': { schema: ErrorResponseSchema } }, description }
 }
+
+export function successResponseSchema<T>(schema: z.ZodType<T>): z.ZodType<{ success: true; data: T }> {
+  return z.object({ success: z.literal(true), data: schema })
+}
+
+export function successResponse(schema: z.ZodType, description: string): {
+  content: Record<string, { schema: z.ZodType }>
+  description: string
+} {
+  return { content: { 'application/json': { schema: successResponseSchema(schema) } }, description }
+}

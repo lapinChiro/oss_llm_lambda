@@ -5,7 +5,7 @@ paths:
   - "plan.md"
   - "docs/**"
   - "TODO"
-  - "TODO.dashboard"
+  - "TODO.archive"
   - "README.md"
 ---
 # 語より先に指示対象を固定する（referent before label）

@@ -1,6 +1,7 @@
 import type { DB } from '../db/generated-types.js'
 import type { TodoRow } from '../db/types.js'
 import type { TodoRepository } from '../repositories/todo.repository.js'
+import type { OrderBy } from '../utils/crud-handlers.js'
 import type { Todo } from '@app/shared'
 import type { Transaction } from 'kysely'
 
@@ -19,8 +20,8 @@ function toTodo(row: TodoRow): Todo {
 export class TodoService {
   constructor(private readonly repository: TodoRepository) {}
 
-  async findMany(): Promise<{ items: Todo[] }> {
-    const page = await this.repository.findMany()
+  async findMany(options: { orderBy: OrderBy }): Promise<{ items: Todo[] }> {
+    const page = await this.repository.findMany(options)
     return { items: page.items.map(toTodo) }
   }
 
