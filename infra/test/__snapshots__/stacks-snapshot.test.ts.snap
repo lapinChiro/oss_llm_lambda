@@ -1,0 +1,1617 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`CDK template snapshot > AppStack の正規化済テンプレートが snapshot と一致する 1`] = `
+{
+  "Outputs": {
+    "ApiGatewayUrl": {
+      "Value": {
+        "Fn::Join": [
+          "",
+          [
+            "https://",
+            {
+              "Ref": "HttpApiF5A9A8A7",
+            },
+            ".execute-api.",
+            {
+              "Ref": "AWS::Region",
+            },
+            ".",
+            {
+              "Ref": "AWS::URLSuffix",
+            },
+            "/",
+          ],
+        ],
+      },
+    },
+    "BackendLambdaArn": {
+      "Value": {
+        "Fn::GetAtt": [
+          "BackendLambdaD93C7B96",
+          "Arn",
+        ],
+      },
+    },
+    "BucketName": {
+      "Value": {
+        "Ref": "SiteBucket397A1860",
+      },
+    },
+    "DistributionId": {
+      "Value": {
+        "Ref": "Distribution830FAC52",
+      },
+    },
+    "DistributionUrl": {
+      "Value": {
+        "Fn::Join": [
+          "",
+          [
+            "https://",
+            {
+              "Fn::GetAtt": [
+                "Distribution830FAC52",
+                "DomainName",
+              ],
+            },
+          ],
+        ],
+      },
+    },
+  },
+  "Parameters": {
+    "BootstrapVersion": {
+      "Default": "/cdk-bootstrap/hnb659fds/version",
+      "Description": "Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]",
+      "Type": "AWS::SSM::Parameter::Value<String>",
+    },
+  },
+  "Resources": {
+    "AWS679f53fac002430cb0da5b7982bd22872D164C4C": {
+      "DependsOn": [
+        "AWS679f53fac002430cb0da5b7982bd2287ServiceRoleC1EA0FF2",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "[ASSET-HASH].zip",
+        },
+        "Handler": "index.handler",
+        "Role": {
+          "Fn::GetAtt": [
+            "AWS679f53fac002430cb0da5b7982bd2287ServiceRoleC1EA0FF2",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs24.x",
+        "Timeout": 120,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "AWS679f53fac002430cb0da5b7982bd2287ServiceRoleC1EA0FF2": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "BackendLambdaD93C7B96": {
+      "DependsOn": [
+        "BackendLambdaServiceRole98E4BC89",
+      ],
+      "Properties": {
+        "Architectures": [
+          "x86_64",
+        ],
+        "Code": {
+          "ImageUri": {
+            "Fn::Sub": "\${AWS::AccountId}.dkr.ecr.\${AWS::Region}.\${AWS::URLSuffix}/cdk-hnb659fds-container-assets-\${AWS::AccountId}-\${AWS::Region}:[ASSET-HASH]",
+          },
+        },
+        "Description": "Backend API Lambda (Hono)",
+        "Environment": {
+          "Variables": {
+            "DB_CONNECTION_TIMEOUT": "5000",
+            "DB_HOST": {
+              "Fn::ImportValue": "webapp-prod-stateful:ExportsOutputFnGetAttDatabaseB269D8BBEndpointAddressA4DBD059",
+            },
+            "DB_IDLE_TIMEOUT": "10000",
+            "DB_NAME": "app",
+            "DB_PASSWORD": "{{resolve:ssm-secure:/webapp/prod/DB_PASSWORD}}",
+            "DB_POOL_MAX": "3",
+            "DB_PORT": "5432",
+            "DB_SSL": "true",
+            "DB_USER": "postgres",
+            "FRONTEND_URL": {
+              "Fn::Join": [
+                "",
+                [
+                  "https://",
+                  {
+                    "Fn::GetAtt": [
+                      "Distribution830FAC52",
+                      "DomainName",
+                    ],
+                  },
+                ],
+              ],
+            },
+            "NODE_ENV": "production",
+            "TZ": "UTC",
+          },
+        },
+        "FunctionName": "webapp-prod-backend",
+        "MemorySize": 512,
+        "PackageType": "Image",
+        "Role": {
+          "Fn::GetAtt": [
+            "BackendLambdaServiceRole98E4BC89",
+            "Arn",
+          ],
+        },
+        "Timeout": 30,
+        "VpcConfig": {
+          "SecurityGroupIds": [
+            {
+              "Fn::GetAtt": [
+                "BackendSecurityGroup96CF32F1",
+                "GroupId",
+              ],
+            },
+          ],
+          "SubnetIds": [
+            {
+              "Fn::ImportValue": "webapp-prod-stateful:ExportsOutputRefVpcLambdaSubnet1Subnet7EB34515EDE894F3",
+            },
+            {
+              "Fn::ImportValue": "webapp-prod-stateful:ExportsOutputRefVpcLambdaSubnet2Subnet160198B3EA4108BA",
+            },
+          ],
+        },
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "BackendLambdaServiceRole98E4BC89": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "BackendSecurityGroup96CF32F1": {
+      "Properties": {
+        "GroupDescription": "Backend Lambda egress to PostgreSQL only",
+        "VpcId": {
+          "Fn::ImportValue": "webapp-prod-stateful:ExportsOutputRefVpc8378EB38272D6E3A",
+        },
+      },
+      "Type": "AWS::EC2::SecurityGroup",
+    },
+    "BackendSecurityGrouptowebappprodstatefulDbSecurityGroup740440B45432186E32C6": {
+      "Properties": {
+        "Description": "Backend Lambda to RDS",
+        "DestinationSecurityGroupId": {
+          "Fn::ImportValue": "webapp-prod-stateful:ExportsOutputFnGetAttDbSecurityGroupE9D701ADGroupId7A7C114A",
+        },
+        "FromPort": 5432,
+        "GroupId": {
+          "Fn::GetAtt": [
+            "BackendSecurityGroup96CF32F1",
+            "GroupId",
+          ],
+        },
+        "IpProtocol": "tcp",
+        "ToPort": 5432,
+      },
+      "Type": "AWS::EC2::SecurityGroupEgress",
+    },
+    "BackendSecurityGroupwebappprodstatefulDbSecurityGroup740440B45432to359B8999": {
+      "Properties": {
+        "Description": "Backend Lambda to RDS",
+        "FromPort": 5432,
+        "GroupId": {
+          "Fn::ImportValue": "webapp-prod-stateful:ExportsOutputFnGetAttDbSecurityGroupE9D701ADGroupId7A7C114A",
+        },
+        "IpProtocol": "tcp",
+        "SourceSecurityGroupId": {
+          "Fn::GetAtt": [
+            "BackendSecurityGroup96CF32F1",
+            "GroupId",
+          ],
+        },
+        "ToPort": 5432,
+      },
+      "Type": "AWS::EC2::SecurityGroupIngress",
+    },
+    "Distribution830FAC52": {
+      "Properties": {
+        "DistributionConfig": {
+          "CacheBehaviors": [
+            {
+              "AllowedMethods": [
+                "GET",
+                "HEAD",
+                "OPTIONS",
+                "PUT",
+                "PATCH",
+                "POST",
+                "DELETE",
+              ],
+              "CachePolicyId": "[UUID]",
+              "Compress": true,
+              "OriginRequestPolicyId": "[UUID]",
+              "PathPattern": "/api/*",
+              "TargetOriginId": "webappprodappDistributionOrigin270134A99",
+              "ViewerProtocolPolicy": "https-only",
+            },
+          ],
+          "Comment": "webapp-prod-cdn",
+          "DefaultCacheBehavior": {
+            "CachePolicyId": "[UUID]",
+            "Compress": true,
+            "FunctionAssociations": [
+              {
+                "EventType": "viewer-request",
+                "FunctionARN": {
+                  "Fn::GetAtt": [
+                    "SpaFallbackFunctionA14E47A8",
+                    "FunctionARN",
+                  ],
+                },
+              },
+            ],
+            "TargetOriginId": "webappprodappDistributionOrigin1557D8BB7",
+            "ViewerProtocolPolicy": "redirect-to-https",
+          },
+          "DefaultRootObject": "index.html",
+          "Enabled": true,
+          "HttpVersion": "http2",
+          "IPV6Enabled": true,
+          "Origins": [
+            {
+              "DomainName": {
+                "Fn::GetAtt": [
+                  "SiteBucket397A1860",
+                  "RegionalDomainName",
+                ],
+              },
+              "Id": "webappprodappDistributionOrigin1557D8BB7",
+              "OriginAccessControlId": {
+                "Fn::GetAtt": [
+                  "DistributionOrigin1S3OriginAccessControlEB606076",
+                  "Id",
+                ],
+              },
+              "S3OriginConfig": {
+                "OriginAccessIdentity": "",
+              },
+            },
+            {
+              "CustomOriginConfig": {
+                "OriginProtocolPolicy": "https-only",
+                "OriginSSLProtocols": [
+                  "TLSv1.2",
+                ],
+              },
+              "DomainName": {
+                "Fn::Select": [
+                  2,
+                  {
+                    "Fn::Split": [
+                      "/",
+                      {
+                        "Fn::Join": [
+                          "",
+                          [
+                            "https://",
+                            {
+                              "Ref": "HttpApiF5A9A8A7",
+                            },
+                            ".execute-api.",
+                            {
+                              "Ref": "AWS::Region",
+                            },
+                            ".",
+                            {
+                              "Ref": "AWS::URLSuffix",
+                            },
+                            "/",
+                          ],
+                        ],
+                      },
+                    ],
+                  },
+                ],
+              },
+              "Id": "webappprodappDistributionOrigin270134A99",
+            },
+          ],
+        },
+      },
+      "Type": "AWS::CloudFront::Distribution",
+    },
+    "DistributionOrigin1S3OriginAccessControlEB606076": {
+      "Properties": {
+        "OriginAccessControlConfig": {
+          "Name": "webappprodappDistributionOrigin1S3OriginAccessControlA20FD189",
+          "OriginAccessControlOriginType": "s3",
+          "SigningBehavior": "always",
+          "SigningProtocol": "sigv4",
+        },
+      },
+      "Type": "AWS::CloudFront::OriginAccessControl",
+    },
+    "HttpApiANYapiproxy20978A2B": {
+      "Properties": {
+        "ApiId": {
+          "Ref": "HttpApiF5A9A8A7",
+        },
+        "AuthorizationType": "NONE",
+        "RouteKey": "ANY /api/{proxy+}",
+        "Target": {
+          "Fn::Join": [
+            "",
+            [
+              "integrations/",
+              {
+                "Ref": "HttpApiANYapiproxyBackendIntegration60EA3C2B",
+              },
+            ],
+          ],
+        },
+      },
+      "Type": "AWS::ApiGatewayV2::Route",
+    },
+    "HttpApiANYapiproxyBackendIntegration60EA3C2B": {
+      "Properties": {
+        "ApiId": {
+          "Ref": "HttpApiF5A9A8A7",
+        },
+        "IntegrationType": "AWS_PROXY",
+        "IntegrationUri": {
+          "Fn::GetAtt": [
+            "BackendLambdaD93C7B96",
+            "Arn",
+          ],
+        },
+        "PayloadFormatVersion": "2.0",
+      },
+      "Type": "AWS::ApiGatewayV2::Integration",
+    },
+    "HttpApiANYapiproxyBackendIntegrationPermission797D0BA4": {
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "BackendLambdaD93C7B96",
+            "Arn",
+          ],
+        },
+        "Principal": "apigateway.amazonaws.com",
+        "SourceArn": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:",
+              {
+                "Ref": "AWS::Partition",
+              },
+              ":execute-api:",
+              {
+                "Ref": "AWS::Region",
+              },
+              ":",
+              {
+                "Ref": "AWS::AccountId",
+              },
+              ":",
+              {
+                "Ref": "HttpApiF5A9A8A7",
+              },
+              "/*/*/api/{proxy+}",
+            ],
+          ],
+        },
+      },
+      "Type": "AWS::Lambda::Permission",
+    },
+    "HttpApiDefaultStage3EEB07D6": {
+      "Properties": {
+        "ApiId": {
+          "Ref": "HttpApiF5A9A8A7",
+        },
+        "AutoDeploy": true,
+        "StageName": "$default",
+      },
+      "Type": "AWS::ApiGatewayV2::Stage",
+    },
+    "HttpApiF5A9A8A7": {
+      "Properties": {
+        "Description": "webapp API Gateway (prod)",
+        "Name": "webapp-prod-api",
+        "ProtocolType": "HTTP",
+      },
+      "Type": "AWS::ApiGatewayV2::Api",
+    },
+    "MigrationLambdaDC97547E": {
+      "DependsOn": [
+        "MigrationLambdaServiceRole4BCC3349",
+      ],
+      "Properties": {
+        "Architectures": [
+          "x86_64",
+        ],
+        "Code": {
+          "ImageUri": {
+            "Fn::Sub": "\${AWS::AccountId}.dkr.ecr.\${AWS::Region}.\${AWS::URLSuffix}/cdk-hnb659fds-container-assets-\${AWS::AccountId}-\${AWS::Region}:[ASSET-HASH]",
+          },
+        },
+        "Description": "Database migration Lambda",
+        "Environment": {
+          "Variables": {
+            "DB_CONNECTION_TIMEOUT": "5000",
+            "DB_HOST": {
+              "Fn::ImportValue": "webapp-prod-stateful:ExportsOutputFnGetAttDatabaseB269D8BBEndpointAddressA4DBD059",
+            },
+            "DB_IDLE_TIMEOUT": "10000",
+            "DB_NAME": "app",
+            "DB_PASSWORD": "{{resolve:ssm-secure:/webapp/prod/DB_PASSWORD}}",
+            "DB_POOL_MAX": "3",
+            "DB_PORT": "5432",
+            "DB_SSL": "true",
+            "DB_USER": "postgres",
+            "NODE_ENV": "production",
+            "TZ": "UTC",
+          },
+        },
+        "FunctionName": "webapp-prod-migration",
+        "ImageConfig": {
+          "Command": [
+            "dist/src/migrate-handler.handler",
+          ],
+        },
+        "MemorySize": 512,
+        "PackageType": "Image",
+        "Role": {
+          "Fn::GetAtt": [
+            "MigrationLambdaServiceRole4BCC3349",
+            "Arn",
+          ],
+        },
+        "Timeout": 300,
+        "VpcConfig": {
+          "SecurityGroupIds": [
+            {
+              "Fn::GetAtt": [
+                "MigrationSecurityGroupBCB362A0",
+                "GroupId",
+              ],
+            },
+          ],
+          "SubnetIds": [
+            {
+              "Fn::ImportValue": "webapp-prod-stateful:ExportsOutputRefVpcLambdaSubnet1Subnet7EB34515EDE894F3",
+            },
+            {
+              "Fn::ImportValue": "webapp-prod-stateful:ExportsOutputRefVpcLambdaSubnet2Subnet160198B3EA4108BA",
+            },
+          ],
+        },
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "MigrationLambdaServiceRole4BCC3349": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "MigrationSecurityGroupBCB362A0": {
+      "Properties": {
+        "GroupDescription": "Migration Lambda egress to PostgreSQL only",
+        "VpcId": {
+          "Fn::ImportValue": "webapp-prod-stateful:ExportsOutputRefVpc8378EB38272D6E3A",
+        },
+      },
+      "Type": "AWS::EC2::SecurityGroup",
+    },
+    "MigrationSecurityGrouptowebappprodstatefulDbSecurityGroup740440B45432954F767C": {
+      "Properties": {
+        "Description": "Migration Lambda to RDS",
+        "DestinationSecurityGroupId": {
+          "Fn::ImportValue": "webapp-prod-stateful:ExportsOutputFnGetAttDbSecurityGroupE9D701ADGroupId7A7C114A",
+        },
+        "FromPort": 5432,
+        "GroupId": {
+          "Fn::GetAtt": [
+            "MigrationSecurityGroupBCB362A0",
+            "GroupId",
+          ],
+        },
+        "IpProtocol": "tcp",
+        "ToPort": 5432,
+      },
+      "Type": "AWS::EC2::SecurityGroupEgress",
+    },
+    "MigrationSecurityGroupwebappprodstatefulDbSecurityGroup740440B45432to3667D562": {
+      "Properties": {
+        "Description": "Migration Lambda to RDS",
+        "FromPort": 5432,
+        "GroupId": {
+          "Fn::ImportValue": "webapp-prod-stateful:ExportsOutputFnGetAttDbSecurityGroupE9D701ADGroupId7A7C114A",
+        },
+        "IpProtocol": "tcp",
+        "SourceSecurityGroupId": {
+          "Fn::GetAtt": [
+            "MigrationSecurityGroupBCB362A0",
+            "GroupId",
+          ],
+        },
+        "ToPort": 5432,
+      },
+      "Type": "AWS::EC2::SecurityGroupIngress",
+    },
+    "MigrationTrigger19994549": {
+      "DeletionPolicy": "Delete",
+      "DependsOn": [
+        "MigrationTriggerCustomResourcePolicyF486C4E9",
+      ],
+      "Properties": {
+        "Create": {
+          "Fn::Join": [
+            "",
+            [
+              "{"service":"Lambda","action":"invoke","parameters":{"FunctionName":"",
+              {
+                "Ref": "MigrationLambdaDC97547E",
+              },
+              "","Payload":"{\\"RequestType\\":\\"Create\\"}"},"physicalResourceId":{"id":"migration-trigger"}}",
+            ],
+          ],
+        },
+        "InstallLatestAwsSdk": false,
+        "ServiceToken": {
+          "Fn::GetAtt": [
+            "AWS679f53fac002430cb0da5b7982bd22872D164C4C",
+            "Arn",
+          ],
+        },
+        "Update": {
+          "Fn::Join": [
+            "",
+            [
+              "{"service":"Lambda","action":"invoke","parameters":{"FunctionName":"",
+              {
+                "Ref": "MigrationLambdaDC97547E",
+              },
+              "","Payload":"{\\"RequestType\\":\\"Update\\"}"},"physicalResourceId":{"id":"[TIMESTAMP]"}}",
+            ],
+          ],
+        },
+      },
+      "Type": "Custom::AWS",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "MigrationTriggerCustomResourcePolicyF486C4E9": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": "lambda:InvokeFunction",
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::GetAtt": [
+                  "MigrationLambdaDC97547E",
+                  "Arn",
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "MigrationTriggerCustomResourcePolicyF486C4E9",
+        "Roles": [
+          {
+            "Ref": "AWS679f53fac002430cb0da5b7982bd2287ServiceRoleC1EA0FF2",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "SiteBucket397A1860": {
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "BucketName": {
+          "Fn::Join": [
+            "",
+            [
+              "webapp-prod-site-",
+              {
+                "Ref": "AWS::AccountId",
+              },
+            ],
+          ],
+        },
+        "LifecycleConfiguration": {
+          "Rules": [
+            {
+              "ExpirationInDays": 7,
+              "Id": "expire-old-hashed-assets",
+              "Prefix": "assets/",
+              "Status": "Enabled",
+            },
+          ],
+        },
+        "PublicAccessBlockConfiguration": {
+          "BlockPublicAcls": true,
+          "BlockPublicPolicy": true,
+          "IgnorePublicAcls": true,
+          "RestrictPublicBuckets": true,
+        },
+      },
+      "Type": "AWS::S3::Bucket",
+      "UpdateReplacePolicy": "Retain",
+    },
+    "SiteBucketPolicy3AC1D0F8": {
+      "Properties": {
+        "Bucket": {
+          "Ref": "SiteBucket397A1860",
+        },
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": "s3:GetObject",
+              "Condition": {
+                "StringEquals": {
+                  "AWS:SourceArn": {
+                    "Fn::Join": [
+                      "",
+                      [
+                        "arn:",
+                        {
+                          "Ref": "AWS::Partition",
+                        },
+                        ":cloudfront::",
+                        {
+                          "Ref": "AWS::AccountId",
+                        },
+                        ":distribution/",
+                        {
+                          "Ref": "Distribution830FAC52",
+                        },
+                      ],
+                    ],
+                  },
+                },
+              },
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "cloudfront.amazonaws.com",
+              },
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    {
+                      "Fn::GetAtt": [
+                        "SiteBucket397A1860",
+                        "Arn",
+                      ],
+                    },
+                    "/*",
+                  ],
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+      },
+      "Type": "AWS::S3::BucketPolicy",
+    },
+    "SpaFallbackFunctionA14E47A8": {
+      "Properties": {
+        "AutoPublish": true,
+        "FunctionCode": "
+function handler(event) {
+  var request = event.request;
+  var uri = request.uri;
+  // 拡張子付き (例: .js, .css, .html, .svg, .png, .ico) はそのまま S3 へ。
+  // 拡張子なしは SPA クライアントルートとみなして /index.html へ書換える。
+  if (uri.match(/\\.[a-zA-Z0-9]+$/)) {
+    return request;
+  }
+  request.uri = '/index.html';
+  return request;
+}
+",
+        "FunctionConfig": {
+          "Comment": "webapp-prod-spa-fallback",
+          "Runtime": "cloudfront-js-2.0",
+        },
+        "Name": "webapp-prod-spa-fallback",
+      },
+      "Type": "AWS::CloudFront::Function",
+    },
+  },
+  "Rules": {
+    "CheckBootstrapVersion": {
+      "Assertions": [
+        {
+          "Assert": {
+            "Fn::Not": [
+              {
+                "Fn::Contains": [
+                  [
+                    "1",
+                    "2",
+                    "3",
+                    "4",
+                    "5",
+                  ],
+                  {
+                    "Ref": "BootstrapVersion",
+                  },
+                ],
+              },
+            ],
+          },
+          "AssertDescription": "CDK bootstrap stack version 6 required. Please run 'cdk bootstrap' with a recent version of the CDK CLI.",
+        },
+      ],
+    },
+  },
+}
+`;
+
+exports[`CDK template snapshot > StatefulStack の正規化済テンプレートが snapshot と一致する 1`] = `
+{
+  "Outputs": {
+    "BastionInstanceId": {
+      "Value": {
+        "Ref": "BastionInstance3B3E1DA4",
+      },
+    },
+    "ExportsOutputFnGetAttDatabaseB269D8BBEndpointAddressA4DBD059": {
+      "Export": {
+        "Name": "webapp-prod-stateful:ExportsOutputFnGetAttDatabaseB269D8BBEndpointAddressA4DBD059",
+      },
+      "Value": {
+        "Fn::GetAtt": [
+          "DatabaseB269D8BB",
+          "Endpoint.Address",
+        ],
+      },
+    },
+    "ExportsOutputFnGetAttDbSecurityGroupE9D701ADGroupId7A7C114A": {
+      "Export": {
+        "Name": "webapp-prod-stateful:ExportsOutputFnGetAttDbSecurityGroupE9D701ADGroupId7A7C114A",
+      },
+      "Value": {
+        "Fn::GetAtt": [
+          "DbSecurityGroupE9D701AD",
+          "GroupId",
+        ],
+      },
+    },
+    "ExportsOutputRefVpc8378EB38272D6E3A": {
+      "Export": {
+        "Name": "webapp-prod-stateful:ExportsOutputRefVpc8378EB38272D6E3A",
+      },
+      "Value": {
+        "Ref": "Vpc8378EB38",
+      },
+    },
+    "ExportsOutputRefVpcLambdaSubnet1Subnet7EB34515EDE894F3": {
+      "Export": {
+        "Name": "webapp-prod-stateful:ExportsOutputRefVpcLambdaSubnet1Subnet7EB34515EDE894F3",
+      },
+      "Value": {
+        "Ref": "VpcLambdaSubnet1Subnet7EB34515",
+      },
+    },
+    "ExportsOutputRefVpcLambdaSubnet2Subnet160198B3EA4108BA": {
+      "Export": {
+        "Name": "webapp-prod-stateful:ExportsOutputRefVpcLambdaSubnet2Subnet160198B3EA4108BA",
+      },
+      "Value": {
+        "Ref": "VpcLambdaSubnet2Subnet160198B3",
+      },
+    },
+    "RdsEndpoint": {
+      "Value": {
+        "Fn::GetAtt": [
+          "DatabaseB269D8BB",
+          "Endpoint.Address",
+        ],
+      },
+    },
+    "SsmPrefix": {
+      "Value": "/webapp/prod",
+    },
+    "VpcId": {
+      "Value": {
+        "Ref": "Vpc8378EB38",
+      },
+    },
+  },
+  "Parameters": {
+    "BootstrapVersion": {
+      "Default": "/cdk-bootstrap/hnb659fds/version",
+      "Description": "Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]",
+      "Type": "AWS::SSM::Parameter::Value<String>",
+    },
+    "SsmParameterValueawsserviceamiamazonlinuxlatestal2023amikernel61arm64C96584B6F00A464EAD1953AFF4B05118Parameter": {
+      "Default": "/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-6.1-arm64",
+      "Type": "AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>",
+    },
+  },
+  "Resources": {
+    "BastionInstance3B3E1DA4": {
+      "DependsOn": [
+        "BastionRole201D3308",
+        "VpcPublicSubnet1DefaultRoute3DA9E72A",
+        "VpcPublicSubnet1RouteTableAssociation97140677",
+      ],
+      "Properties": {
+        "AvailabilityZone": {
+          "Fn::Select": [
+            0,
+            {
+              "Fn::GetAZs": "",
+            },
+          ],
+        },
+        "BlockDeviceMappings": [
+          {
+            "DeviceName": "/dev/xvda",
+            "Ebs": {
+              "Encrypted": true,
+              "VolumeSize": 8,
+              "VolumeType": "gp3",
+            },
+          },
+        ],
+        "IamInstanceProfile": {
+          "Ref": "BastionInstanceInstanceProfile9D596C64",
+        },
+        "ImageId": {
+          "Ref": "SsmParameterValueawsserviceamiamazonlinuxlatestal2023amikernel61arm64C96584B6F00A464EAD1953AFF4B05118Parameter",
+        },
+        "InstanceType": "t4g.nano",
+        "NetworkInterfaces": [
+          {
+            "AssociatePublicIpAddress": true,
+            "DeviceIndex": "0",
+            "GroupSet": [
+              {
+                "Fn::GetAtt": [
+                  "BastionSecurityGroupDAB89EBD",
+                  "GroupId",
+                ],
+              },
+            ],
+            "SubnetId": {
+              "Ref": "VpcPublicSubnet1Subnet5C2D37C4",
+            },
+          },
+        ],
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "webapp-prod-bastion",
+          },
+        ],
+        "UserData": {
+          "Fn::Base64": "#!/bin/bash",
+        },
+      },
+      "Type": "AWS::EC2::Instance",
+    },
+    "BastionInstanceInstanceProfile9D596C64": {
+      "Properties": {
+        "Roles": [
+          {
+            "Ref": "BastionRole201D3308",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::InstanceProfile",
+    },
+    "BastionRole201D3308": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "ec2.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/AmazonSSMManagedInstanceCore",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "BastionSecurityGroupDAB89EBD": {
+      "Properties": {
+        "GroupDescription": "Bastion EC2 (SSM only, no ingress)",
+        "GroupName": "webapp-prod-bastion-sg",
+        "SecurityGroupEgress": [
+          {
+            "CidrIp": "0.0.0.0/0",
+            "Description": "SSM agent to AWS API",
+            "FromPort": 443,
+            "IpProtocol": "tcp",
+            "ToPort": 443,
+          },
+        ],
+        "VpcId": {
+          "Ref": "Vpc8378EB38",
+        },
+      },
+      "Type": "AWS::EC2::SecurityGroup",
+    },
+    "BastionSecurityGrouptowebappprodstatefulDbSecurityGroup740440B454322A13721E": {
+      "Properties": {
+        "Description": "Bastion to RDS",
+        "DestinationSecurityGroupId": {
+          "Fn::GetAtt": [
+            "DbSecurityGroupE9D701AD",
+            "GroupId",
+          ],
+        },
+        "FromPort": 5432,
+        "GroupId": {
+          "Fn::GetAtt": [
+            "BastionSecurityGroupDAB89EBD",
+            "GroupId",
+          ],
+        },
+        "IpProtocol": "tcp",
+        "ToPort": 5432,
+      },
+      "Type": "AWS::EC2::SecurityGroupEgress",
+    },
+    "DatabaseB269D8BB": {
+      "DeletionPolicy": "Snapshot",
+      "Properties": {
+        "AllocatedStorage": "20",
+        "BackupRetentionPeriod": 7,
+        "CopyTagsToSnapshot": true,
+        "DBInstanceClass": "db.t4g.micro",
+        "DBInstanceIdentifier": "webapp-prod-rds",
+        "DBName": "app",
+        "DBSubnetGroupName": {
+          "Ref": "DatabaseSubnetGroup7D60F180",
+        },
+        "DeletionProtection": true,
+        "Engine": "postgres",
+        "EngineVersion": "17",
+        "MasterUserPassword": "{{resolve:ssm-secure:/webapp/prod/DB_PASSWORD}}",
+        "MasterUsername": "postgres",
+        "MultiAZ": false,
+        "PubliclyAccessible": false,
+        "StorageEncrypted": true,
+        "StorageType": "gp3",
+        "VPCSecurityGroups": [
+          {
+            "Fn::GetAtt": [
+              "DbSecurityGroupE9D701AD",
+              "GroupId",
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::RDS::DBInstance",
+      "UpdateReplacePolicy": "Snapshot",
+    },
+    "DatabaseSubnetGroup7D60F180": {
+      "Properties": {
+        "DBSubnetGroupDescription": "Subnet group for Database database",
+        "SubnetIds": [
+          {
+            "Ref": "VpcDatabaseSubnet1SubnetAABB97F7",
+          },
+          {
+            "Ref": "VpcDatabaseSubnet2Subnet7DBBCA2D",
+          },
+        ],
+      },
+      "Type": "AWS::RDS::DBSubnetGroup",
+    },
+    "DbSecurityGroupE9D701AD": {
+      "Properties": {
+        "GroupDescription": "Security group for RDS PostgreSQL",
+        "GroupName": "webapp-prod-db-sg",
+        "SecurityGroupEgress": [
+          {
+            "CidrIp": "255.255.255.255/32",
+            "Description": "Disallow all traffic",
+            "FromPort": 252,
+            "IpProtocol": "icmp",
+            "ToPort": 86,
+          },
+        ],
+        "VpcId": {
+          "Ref": "Vpc8378EB38",
+        },
+      },
+      "Type": "AWS::EC2::SecurityGroup",
+    },
+    "DbSecurityGroupfromwebappprodstatefulBastionSecurityGroupC0EF993354328BD6E6C0": {
+      "Properties": {
+        "Description": "RDS from Bastion",
+        "FromPort": 5432,
+        "GroupId": {
+          "Fn::GetAtt": [
+            "DbSecurityGroupE9D701AD",
+            "GroupId",
+          ],
+        },
+        "IpProtocol": "tcp",
+        "SourceSecurityGroupId": {
+          "Fn::GetAtt": [
+            "BastionSecurityGroupDAB89EBD",
+            "GroupId",
+          ],
+        },
+        "ToPort": 5432,
+      },
+      "Type": "AWS::EC2::SecurityGroupIngress",
+    },
+    "Vpc8378EB38": {
+      "Properties": {
+        "CidrBlock": "10.0.0.0/16",
+        "EnableDnsHostnames": true,
+        "EnableDnsSupport": true,
+        "InstanceTenancy": "default",
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "webapp-prod-vpc",
+          },
+        ],
+      },
+      "Type": "AWS::EC2::VPC",
+    },
+    "VpcDatabaseSubnet1RouteTableAssociation79DDF1A4": {
+      "Properties": {
+        "RouteTableId": {
+          "Ref": "VpcDatabaseSubnet1RouteTableE76EC08D",
+        },
+        "SubnetId": {
+          "Ref": "VpcDatabaseSubnet1SubnetAABB97F7",
+        },
+      },
+      "Type": "AWS::EC2::SubnetRouteTableAssociation",
+    },
+    "VpcDatabaseSubnet1RouteTableE76EC08D": {
+      "Properties": {
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "webapp-prod-stateful/Vpc/DatabaseSubnet1",
+          },
+        ],
+        "VpcId": {
+          "Ref": "Vpc8378EB38",
+        },
+      },
+      "Type": "AWS::EC2::RouteTable",
+    },
+    "VpcDatabaseSubnet1SubnetAABB97F7": {
+      "Properties": {
+        "AvailabilityZone": {
+          "Fn::Select": [
+            0,
+            {
+              "Fn::GetAZs": "",
+            },
+          ],
+        },
+        "CidrBlock": "10.0.2.0/24",
+        "MapPublicIpOnLaunch": false,
+        "Tags": [
+          {
+            "Key": "aws-cdk:subnet-name",
+            "Value": "Database",
+          },
+          {
+            "Key": "aws-cdk:subnet-type",
+            "Value": "Isolated",
+          },
+          {
+            "Key": "Name",
+            "Value": "webapp-prod-stateful/Vpc/DatabaseSubnet1",
+          },
+        ],
+        "VpcId": {
+          "Ref": "Vpc8378EB38",
+        },
+      },
+      "Type": "AWS::EC2::Subnet",
+    },
+    "VpcDatabaseSubnet2RouteTable1B42087E": {
+      "Properties": {
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "webapp-prod-stateful/Vpc/DatabaseSubnet2",
+          },
+        ],
+        "VpcId": {
+          "Ref": "Vpc8378EB38",
+        },
+      },
+      "Type": "AWS::EC2::RouteTable",
+    },
+    "VpcDatabaseSubnet2RouteTableAssociation1229C16C": {
+      "Properties": {
+        "RouteTableId": {
+          "Ref": "VpcDatabaseSubnet2RouteTable1B42087E",
+        },
+        "SubnetId": {
+          "Ref": "VpcDatabaseSubnet2Subnet7DBBCA2D",
+        },
+      },
+      "Type": "AWS::EC2::SubnetRouteTableAssociation",
+    },
+    "VpcDatabaseSubnet2Subnet7DBBCA2D": {
+      "Properties": {
+        "AvailabilityZone": {
+          "Fn::Select": [
+            1,
+            {
+              "Fn::GetAZs": "",
+            },
+          ],
+        },
+        "CidrBlock": "10.0.3.0/24",
+        "MapPublicIpOnLaunch": false,
+        "Tags": [
+          {
+            "Key": "aws-cdk:subnet-name",
+            "Value": "Database",
+          },
+          {
+            "Key": "aws-cdk:subnet-type",
+            "Value": "Isolated",
+          },
+          {
+            "Key": "Name",
+            "Value": "webapp-prod-stateful/Vpc/DatabaseSubnet2",
+          },
+        ],
+        "VpcId": {
+          "Ref": "Vpc8378EB38",
+        },
+      },
+      "Type": "AWS::EC2::Subnet",
+    },
+    "VpcIGWD7BA715C": {
+      "Properties": {
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "webapp-prod-vpc",
+          },
+        ],
+      },
+      "Type": "AWS::EC2::InternetGateway",
+    },
+    "VpcLambdaSubnet1RouteTable9D6FBB4D": {
+      "Properties": {
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "webapp-prod-stateful/Vpc/LambdaSubnet1",
+          },
+        ],
+        "VpcId": {
+          "Ref": "Vpc8378EB38",
+        },
+      },
+      "Type": "AWS::EC2::RouteTable",
+    },
+    "VpcLambdaSubnet1RouteTableAssociation1A760B0C": {
+      "Properties": {
+        "RouteTableId": {
+          "Ref": "VpcLambdaSubnet1RouteTable9D6FBB4D",
+        },
+        "SubnetId": {
+          "Ref": "VpcLambdaSubnet1Subnet7EB34515",
+        },
+      },
+      "Type": "AWS::EC2::SubnetRouteTableAssociation",
+    },
+    "VpcLambdaSubnet1Subnet7EB34515": {
+      "Properties": {
+        "AvailabilityZone": {
+          "Fn::Select": [
+            0,
+            {
+              "Fn::GetAZs": "",
+            },
+          ],
+        },
+        "CidrBlock": "10.0.0.0/24",
+        "MapPublicIpOnLaunch": false,
+        "Tags": [
+          {
+            "Key": "aws-cdk:subnet-name",
+            "Value": "Lambda",
+          },
+          {
+            "Key": "aws-cdk:subnet-type",
+            "Value": "Isolated",
+          },
+          {
+            "Key": "Name",
+            "Value": "webapp-prod-stateful/Vpc/LambdaSubnet1",
+          },
+        ],
+        "VpcId": {
+          "Ref": "Vpc8378EB38",
+        },
+      },
+      "Type": "AWS::EC2::Subnet",
+    },
+    "VpcLambdaSubnet2RouteTable2B9E3421": {
+      "Properties": {
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "webapp-prod-stateful/Vpc/LambdaSubnet2",
+          },
+        ],
+        "VpcId": {
+          "Ref": "Vpc8378EB38",
+        },
+      },
+      "Type": "AWS::EC2::RouteTable",
+    },
+    "VpcLambdaSubnet2RouteTableAssociation4C9E794D": {
+      "Properties": {
+        "RouteTableId": {
+          "Ref": "VpcLambdaSubnet2RouteTable2B9E3421",
+        },
+        "SubnetId": {
+          "Ref": "VpcLambdaSubnet2Subnet160198B3",
+        },
+      },
+      "Type": "AWS::EC2::SubnetRouteTableAssociation",
+    },
+    "VpcLambdaSubnet2Subnet160198B3": {
+      "Properties": {
+        "AvailabilityZone": {
+          "Fn::Select": [
+            1,
+            {
+              "Fn::GetAZs": "",
+            },
+          ],
+        },
+        "CidrBlock": "10.0.1.0/24",
+        "MapPublicIpOnLaunch": false,
+        "Tags": [
+          {
+            "Key": "aws-cdk:subnet-name",
+            "Value": "Lambda",
+          },
+          {
+            "Key": "aws-cdk:subnet-type",
+            "Value": "Isolated",
+          },
+          {
+            "Key": "Name",
+            "Value": "webapp-prod-stateful/Vpc/LambdaSubnet2",
+          },
+        ],
+        "VpcId": {
+          "Ref": "Vpc8378EB38",
+        },
+      },
+      "Type": "AWS::EC2::Subnet",
+    },
+    "VpcPublicSubnet1DefaultRoute3DA9E72A": {
+      "DependsOn": [
+        "VpcVPCGWBF912B6E",
+      ],
+      "Properties": {
+        "DestinationCidrBlock": "0.0.0.0/0",
+        "GatewayId": {
+          "Ref": "VpcIGWD7BA715C",
+        },
+        "RouteTableId": {
+          "Ref": "VpcPublicSubnet1RouteTable6C95E38E",
+        },
+      },
+      "Type": "AWS::EC2::Route",
+    },
+    "VpcPublicSubnet1RouteTable6C95E38E": {
+      "Properties": {
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "webapp-prod-stateful/Vpc/PublicSubnet1",
+          },
+        ],
+        "VpcId": {
+          "Ref": "Vpc8378EB38",
+        },
+      },
+      "Type": "AWS::EC2::RouteTable",
+    },
+    "VpcPublicSubnet1RouteTableAssociation97140677": {
+      "Properties": {
+        "RouteTableId": {
+          "Ref": "VpcPublicSubnet1RouteTable6C95E38E",
+        },
+        "SubnetId": {
+          "Ref": "VpcPublicSubnet1Subnet5C2D37C4",
+        },
+      },
+      "Type": "AWS::EC2::SubnetRouteTableAssociation",
+    },
+    "VpcPublicSubnet1Subnet5C2D37C4": {
+      "Properties": {
+        "AvailabilityZone": {
+          "Fn::Select": [
+            0,
+            {
+              "Fn::GetAZs": "",
+            },
+          ],
+        },
+        "CidrBlock": "10.0.4.0/24",
+        "MapPublicIpOnLaunch": true,
+        "Tags": [
+          {
+            "Key": "aws-cdk:subnet-name",
+            "Value": "Public",
+          },
+          {
+            "Key": "aws-cdk:subnet-type",
+            "Value": "Public",
+          },
+          {
+            "Key": "Name",
+            "Value": "webapp-prod-stateful/Vpc/PublicSubnet1",
+          },
+        ],
+        "VpcId": {
+          "Ref": "Vpc8378EB38",
+        },
+      },
+      "Type": "AWS::EC2::Subnet",
+    },
+    "VpcPublicSubnet2DefaultRoute97F91067": {
+      "DependsOn": [
+        "VpcVPCGWBF912B6E",
+      ],
+      "Properties": {
+        "DestinationCidrBlock": "0.0.0.0/0",
+        "GatewayId": {
+          "Ref": "VpcIGWD7BA715C",
+        },
+        "RouteTableId": {
+          "Ref": "VpcPublicSubnet2RouteTable94F7E489",
+        },
+      },
+      "Type": "AWS::EC2::Route",
+    },
+    "VpcPublicSubnet2RouteTable94F7E489": {
+      "Properties": {
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "webapp-prod-stateful/Vpc/PublicSubnet2",
+          },
+        ],
+        "VpcId": {
+          "Ref": "Vpc8378EB38",
+        },
+      },
+      "Type": "AWS::EC2::RouteTable",
+    },
+    "VpcPublicSubnet2RouteTableAssociationDD5762D8": {
+      "Properties": {
+        "RouteTableId": {
+          "Ref": "VpcPublicSubnet2RouteTable94F7E489",
+        },
+        "SubnetId": {
+          "Ref": "VpcPublicSubnet2Subnet691E08A3",
+        },
+      },
+      "Type": "AWS::EC2::SubnetRouteTableAssociation",
+    },
+    "VpcPublicSubnet2Subnet691E08A3": {
+      "Properties": {
+        "AvailabilityZone": {
+          "Fn::Select": [
+            1,
+            {
+              "Fn::GetAZs": "",
+            },
+          ],
+        },
+        "CidrBlock": "10.0.5.0/24",
+        "MapPublicIpOnLaunch": true,
+        "Tags": [
+          {
+            "Key": "aws-cdk:subnet-name",
+            "Value": "Public",
+          },
+          {
+            "Key": "aws-cdk:subnet-type",
+            "Value": "Public",
+          },
+          {
+            "Key": "Name",
+            "Value": "webapp-prod-stateful/Vpc/PublicSubnet2",
+          },
+        ],
+        "VpcId": {
+          "Ref": "Vpc8378EB38",
+        },
+      },
+      "Type": "AWS::EC2::Subnet",
+    },
+    "VpcVPCGWBF912B6E": {
+      "Properties": {
+        "InternetGatewayId": {
+          "Ref": "VpcIGWD7BA715C",
+        },
+        "VpcId": {
+          "Ref": "Vpc8378EB38",
+        },
+      },
+      "Type": "AWS::EC2::VPCGatewayAttachment",
+    },
+  },
+  "Rules": {
+    "CheckBootstrapVersion": {
+      "Assertions": [
+        {
+          "Assert": {
+            "Fn::Not": [
+              {
+                "Fn::Contains": [
+                  [
+                    "1",
+                    "2",
+                    "3",
+                    "4",
+                    "5",
+                  ],
+                  {
+                    "Ref": "BootstrapVersion",
+                  },
+                ],
+              },
+            ],
+          },
+          "AssertDescription": "CDK bootstrap stack version 6 required. Please run 'cdk bootstrap' with a recent version of the CDK CLI.",
+        },
+      ],
+    },
+  },
+}
+`;

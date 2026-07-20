@@ -1,0 +1,3 @@
+{
+  "$comment": "Keep schema-specific aliases in src/db/types.ts; this file contains no product-specific overrides."
+}

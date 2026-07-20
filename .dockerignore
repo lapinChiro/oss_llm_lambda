@@ -1,0 +1,48 @@
+# === Version Control ===
+.git
+.gitignore
+
+# === Dependencies (各ステージで npm ci するため不要) ===
+node_modules
+**/node_modules
+
+# === Build Artifacts (ビルドステージで生成するため不要) ===
+**/dist
+*.tsbuildinfo
+
+# === Frontend (Lambda ビルドに不要) ===
+apps/frontend
+
+# === Docker (自身のビルドコンテキストには不要) ===
+docker
+
+# === Documentation ===
+*.md
+docs
+
+# === Environment Files (シークレットを含むためコピーしない) ===
+.env
+.env.*
+**/.env
+**/.env.*
+
+# === IDE / Editor ===
+.vscode
+.idea
+.yarn
+
+# === Test / Coverage ===
+coverage
+**/coverage
+
+# === Misc ===
+.DS_Store
+local-data
+*.log
+npm-debug.log*
+
+# === Infra (CDK コードは Lambda イメージに不要) ===
+infra
+
+# === Serena ===
+.serena

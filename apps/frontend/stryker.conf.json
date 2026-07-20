@@ -1,0 +1,14 @@
+{
+  "$schema": "./node_modules/@stryker-mutator/core/schema/stryker-schema.json",
+  "packageManager": "npm",
+  "testRunner": "vitest",
+  "vitest": { "configFile": "vitest.stryker.config.ts" },
+  "coverageAnalysis": "perTest",
+  "reporters": ["html", "clear-text", "progress"],
+  "incremental": true,
+  "ignoreStatic": true,
+  "timeoutMS": 60000,
+  "timeoutFactor": 2,
+  "thresholds": { "high": 95, "low": 90, "break": 94 },
+  "mutate": ["src/composables/useTodos.ts", "src/api/todos-api.ts"]
+}

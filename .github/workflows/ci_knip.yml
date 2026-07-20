@@ -1,0 +1,48 @@
+name: CI Knip
+
+on:
+  pull_request:
+
+jobs:
+  detect:
+    name: Detect changes
+    runs-on: ubuntu-latest
+    outputs:
+      relevant: ${{ steps.filter.outputs.knip }}
+    steps:
+      - uses: dorny/paths-filter@v4.0.1
+        id: filter
+        with:
+          filters: |
+            knip:
+              # knip は monorepo 全体を root 1 プロセスで検査するため、
+              # 任意の workspace / root 変更で起動する。
+              - '**'
+              # ドキュメントのみの変更 (.md / root TODO) は CI をスキップ
+              - '!**/*.md'
+              - '!TODO'
+
+  knip:
+    name: Unused code & dependencies (knip)
+    needs: detect
+    if: needs.detect.outputs.relevant == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7.0.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: '.node-version'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      # root 単一 config (knip.ts) に基づき monorepo 全体 + root devDeps を 1 回で検査する。
+      # source 解析のため shared packages の build は不要。
+      - name: Unused exports & dependencies check (knip)
+        run: npx knip

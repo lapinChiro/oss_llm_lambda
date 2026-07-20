@@ -1,0 +1,60 @@
+{
+  "sortExports": [
+    "app-source",
+    "types",
+    "node-addons",
+    "node",
+    "browser",
+    "module",
+    "import",
+    "require",
+    "development",
+    "production",
+    "default"
+  ],
+  "versionGroups": [
+    {
+      "label": "ルート管理の devDependencies はワークスペースでの宣言を禁止",
+      "dependencies": [
+        "@eslint/js",
+        "@types/aws-lambda",
+        "@types/node",
+        "@typescript-eslint/eslint-plugin",
+        "@typescript-eslint/parser",
+        "@vitest/coverage-v8",
+        "eslint",
+        "eslint-config-prettier",
+        "eslint-plugin-oxlint",
+        "eslint-plugin-perfectionist",
+        "knip",
+        "npm-run-all2",
+        "oxlint",
+        "tsx",
+        "typescript",
+        "typescript-eslint",
+        "vitest"
+      ],
+      "packages": [
+        "backend",
+        "frontend",
+        "@app/**"
+      ],
+      "isBanned": true
+    },
+    {
+      "dependencies": [
+        "**"
+      ],
+      "preferVersion": "highestSemver"
+    }
+  ],
+  "semverGroups": [
+    {
+      "label": "全パッケージでバージョンをピン固定 (caret/tilde 禁止)",
+      "dependencies": [
+        "**"
+      ],
+      "range": ""
+    }
+  ]
+}

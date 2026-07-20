@@ -1,0 +1,22 @@
+{
+  "extends": "./tsconfig.json",
+  // rootDir を "." に固定して出力レイアウト (dist/src/...) を明示する。
+  // 未指定だと rootDir は「全入力ファイルの共通親」に推論され、root 直下の test setup
+  // (vitest.*.ts) が除外され切ると共通親が src/ に縮退して dist/ 直下出力に化け、
+  // Dockerfile CMD / CDK cmd / start script (いずれも dist/src/...) が壊れる。
+  "compilerOptions": {
+    "rootDir": "."
+  },
+  // production build から dev/test 専用コードを除外する (Lambda イメージへの混入防止)。
+  "exclude": [
+    "node_modules",
+    "tests",
+    "scripts",
+    "vitest.config.ts",
+    "vitest.stryker.config.ts",
+    "**/*.test.ts",
+    "**/__tests__/**",
+    "src/testing/**",
+    "src/db/migrations/**"
+  ]
+}

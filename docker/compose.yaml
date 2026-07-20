@@ -1,0 +1,74 @@
+services:
+  postgres:
+    image: postgres:17.6
+    container_name: webapp_postgres
+    ports: ["5435:5432"]
+    environment:
+      POSTGRES_DB: app_dev
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
+    volumes: [postgres-data:/var/lib/postgresql/data]
+    networks: [webapp_network]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d app_dev"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+  frontend:
+    image: node:24
+    container_name: webapp_frontend
+    ports: ["5173:5173"]
+    volumes:
+      - ../:/workspace
+      - /workspace/node_modules
+      - /workspace/apps/frontend/node_modules
+    environment:
+      VITE_API_BASE_URL: http://localhost:3000
+    networks: [webapp_network]
+    working_dir: /workspace/apps/frontend
+    depends_on:
+      backend: { condition: service_healthy }
+    command: sh -c "npm ci && npm run build -w @app/shared -w @app/utils && npm run dev -- --host 0.0.0.0"
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:5173').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  backend:
+    image: node:24
+    container_name: webapp_backend
+    ports: ["3000:3000", "9000:8080"]
+    volumes:
+      - ../:/workspace
+      - /workspace/node_modules
+      - /workspace/apps/backend/node_modules
+    env_file: [../apps/backend/.env]
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: postgres
+      DB_PASSWORD: password
+      DB_NAME: app_dev
+      DB_SSL: "false"
+      DATABASE_URL: postgresql://postgres:password@postgres:5432/app_dev
+      NODE_OPTIONS: --conditions=app-source
+    networks: [webapp_network]
+    working_dir: /workspace/apps/backend
+    depends_on:
+      postgres: { condition: service_healthy }
+    command: sh -c "npm ci && npm run build -w @app/shared -w @app/utils && npm run migrate && npm run dev"
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:3000/api/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+networks:
+  webapp_network: { driver: bridge }
+
+volumes:
+  postgres-data:
