@@ -18,7 +18,7 @@ services:
       start_period: 15s
 
   frontend:
-    image: node:24
+    image: node:25
     container_name: webapp_frontend
     ports: ["5173:5173"]
     volumes:
@@ -39,7 +39,7 @@ services:
       retries: 20
 
   backend:
-    image: node:24
+    image: node:25
     container_name: webapp_backend
     ports: ["3000:3000", "9000:8080"]
     volumes:
