@@ -15,7 +15,7 @@
     "oxlint": "1.71.0",
     "syncpack": "15.3.2",
     "tsx": "4.22.4",
-    "typescript": "6.0.3",
+    "typescript": "7.0.2",
     "typescript-eslint": "8.62.0",
     "vitest": "4.1.9"
   },
@@ -31,7 +31,7 @@
   ],
   "license": "MIT",
   "overrides": {
-    "typescript": "6.0.3"
+    "typescript": "7.0.2"
   },
   "private": true,
   "scripts": {
