@@ -3,7 +3,7 @@
   "description": "Domain-free shared utilities for the web application",
   "version": "1.0.0",
   "devDependencies": {
-    "oxlint-tsgolint": "0.23.0"
+    "oxlint-tsgolint": "0.25.0"
   },
   "exports": {
     ".": {
