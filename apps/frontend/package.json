@@ -22,7 +22,7 @@
     "eslint-plugin-vue": "10.9.2",
     "happy-dom": "20.10.6",
     "jiti": "2.7.0",
-    "oxlint-tsgolint": "0.23.0",
+    "oxlint-tsgolint": "7.0.2001",
     "playwright": "1.61.1",
     "storybook": "10.4.6",
     "tailwindcss": "4.3.1",
