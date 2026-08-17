@@ -11,7 +11,7 @@
     "eslint-plugin-oxlint": "1.71.0",
     "eslint-plugin-perfectionist": "5.9.1",
     "knip": "6.23.0",
-    "npm-run-all2": "9.0.2",
+    "npm-run-all2": "9.0.3",
     "oxlint": "1.71.0",
     "syncpack": "15.3.2",
     "tsx": "4.22.4",
