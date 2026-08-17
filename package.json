@@ -8,7 +8,7 @@
     "@vitest/coverage-v8": "4.1.9",
     "eslint": "10.6.0",
     "eslint-config-prettier": "10.1.8",
-    "eslint-plugin-oxlint": "1.71.0",
+    "eslint-plugin-oxlint": "1.76.0",
     "eslint-plugin-perfectionist": "5.9.1",
     "knip": "6.23.0",
     "npm-run-all2": "9.0.2",
