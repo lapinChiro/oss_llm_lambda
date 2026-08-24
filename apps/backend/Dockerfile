@@ -5,7 +5,7 @@
 # ================================================================
 
 # ---- Build Stage ----
-FROM node:24-slim AS builder
+FROM node:26-slim AS builder
 
 WORKDIR /workspace
 
@@ -41,7 +41,7 @@ RUN node -e "const https=require('https'),fs=require('fs'); \
   https.get('https://truststore.pki.rds.amazonaws.com/global/global-bundle.pem', r=>r.pipe(f));"
 
 # ---- Production Dependencies Stage ----
-FROM node:24-slim AS deps
+FROM node:26-slim AS deps
 
 WORKDIR /workspace
 
