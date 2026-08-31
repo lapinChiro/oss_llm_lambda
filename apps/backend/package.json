@@ -14,7 +14,7 @@
   "devDependencies": {
     "@electric-sql/pglite": "0.5.3",
     "@stryker-mutator/core": "9.6.1",
-    "@stryker-mutator/vitest-runner": "9.6.1",
+    "@stryker-mutator/vitest-runner": "10.0.0",
     "@types/pg": "8.20.0",
     "ajv-formats": "3.0.1",
     "kysely-codegen": "0.20.0",
