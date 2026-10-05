@@ -7,7 +7,7 @@
   },
   "devDependencies": {
     "aws-cdk": "2.1128.1",
-    "oxlint-tsgolint": "0.23.0"
+    "oxlint-tsgolint": "7.0.2002"
   },
   "private": true,
   "scripts": {
