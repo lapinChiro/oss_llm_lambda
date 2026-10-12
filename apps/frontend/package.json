@@ -15,7 +15,7 @@
     "@tailwindcss/vite": "4.3.1",
     "@tsconfig/node24": "24.0.4",
     "@vitejs/plugin-vue": "6.0.7",
-    "@vitest/browser": "4.1.9",
+    "@vitest/browser": "5.0.2",
     "@vitest/browser-playwright": "4.1.9",
     "@vue/tsconfig": "0.9.1",
     "eslint-plugin-storybook": "10.4.6",
