@@ -51,7 +51,7 @@ jobs:
       # lock 変更 (Playwright 版上げ含む) でキーが変わり、キャッシュ更新の必要性を機械的に検知できる。
       - name: Cache Playwright browsers
         id: playwright-cache
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
@@ -114,7 +114,7 @@ jobs:
       # image タグは compose.yaml が単一真実源。キャッシュキーも compose.yaml ハッシュに連動し、
       # タグ変更でキーが変わるため、キャッシュ更新の必要性を機械的に検知できる。
       - name: Cache postgres image
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.cache/docker-images
           key: docker-postgres-${{ hashFiles('docker/compose.yaml') }}
